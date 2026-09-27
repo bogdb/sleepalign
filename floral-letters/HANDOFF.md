@@ -99,7 +99,16 @@ On 17 Aug 2026 Etsy's system removed a Sumikiri draft within minutes for its cat
 For each listing: listing_id, draft URL, number of files attached (should be 5), number of images (should be 6),
 and anything that didn't go through.
 
-## Next in the pipeline (not for this handoff)
+## Second batch: November Chrysanthemum (same process, two more drafts)
 
-November Chrysanthemum (Dusty Pink, and Rust & Cream) is being rendered now and will land in
-`etsy-ready/november-chrysanthemum/` with its own listing copy.
+Identical settings, rules and report-back as above, with these differences:
+
+| | Dusty Pink | Rust & Cream (gender-neutral) |
+|---|---|---|
+| Files | `etsy-ready/november-chrysanthemum/dusty-pink/files/` (5 zips) | `etsy-ready/november-chrysanthemum/rust-cream/files/` (5 zips) |
+| Images | `…/dusty-pink/images/` 01 → 06 | `…/rust-cream/images/` 01 → 06 |
+| Title, tags, description | `listings/november-chrysanthemum.txt` | same file, with the swaps it lists |
+
+Listing copy: https://github.com/bogdb/sleepalign/blob/claude/floral-letter-printables-2b2a9v/floral-letters/listings/november-chrysanthemum.txt
+
+November is the priority if you only do one batch: those babies' showers are happening now.
