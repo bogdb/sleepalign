@@ -30,6 +30,7 @@ Etsy download (all sizes, then five zips under 20 MB each, each with a printing-
 ```sh
 EXPORT=1 node generate.js sep-aster-girl    # out/export/sep-aster-girl/<size>/<L>.jpg, ~5 min
 node package.js sep-aster-girl              # out/etsy/sep-aster-girl/*.zip
+node listing-images.js sep-aster-girl       # out/etsy/sep-aster-girl/images/*.jpg, 3000x2250 (needs both colourways exported)
 ```
 
 | Zip | Contents | Pixels (300 dpi) | Size |
@@ -54,7 +55,7 @@ Output is 2400×3000 px (8×10 in at 300 dpi) and is deterministic: the same com
 
 ## Still to do before listing
 
-- Replace the code-drawn wall mockup with real photo mockups.
+- Add a real photo mockup (framed on a wall) as listing image 2.
 - Title, tags, description, price.
 
 Fonts: Cormorant Garamond and Great Vibes, both SIL Open Font License.

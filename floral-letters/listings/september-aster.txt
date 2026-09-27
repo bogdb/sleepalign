@@ -19,6 +19,8 @@ Files (5):       *_1of5_5x7-and-banner.zip
                  *_5of5_A3.zip
 Materials:       digital download, JPG, PDF printing guide
 Section:         Birth Flower Letters (new section)
+Images (order):  01-hero-banner, 02-the-print, 03-a-to-z, 04-sizes, 05-detail, 06-colours
+                 (slot a photo mockup in as image 2 when you have one)
 
 ====================================================================
 TITLE — PINK & LILAC  (127 of 140 characters)
@@ -119,5 +121,6 @@ PRE-FLIGHT CHECK
 [x] Says clearly: digital, nothing shipped, frames not included
 [x] Does not claim "hand-painted" (the art is digital, watercolour-style)
 [x] No personalisation promised (fully automated delivery)
-[ ] Listing images at 3000 x 2250 (current mockups are 2000 x 2000 squares)
+[x] Listing images at 3000 x 2250, max 7 words each (node listing-images.js <theme>)
+[ ] Real photo mockup (framed on a wall) as image 2 — buy a mockup pack
 [ ] AI disclosure decided (see note in chat)
