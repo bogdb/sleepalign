@@ -55,7 +55,9 @@ Output is 2400×3000 px (8×10 in at 300 dpi) and is deterministic: the same com
 
 ## Still to do before listing
 
+Listing copy: `listings/september-aster.txt` (shop Sumikiri, section Birth Flower Letters).
+
+
 - Add a real photo mockup (framed on a wall) as listing image 2.
-- Title, tags, description, price.
 
 Fonts: Cormorant Garamond and Great Vibes, both SIL Open Font License.
