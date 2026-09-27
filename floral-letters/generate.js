@@ -519,9 +519,11 @@ function composeTheme(T, letter = 'M') {
   return ['stem', 'leaf', 'filler', 'flower', 'top'].map(k => `<g>${L2[k].join('')}</g>`).join('');
 }
 
-function themedPage(T, meta, letter) {
-  const art = composeTheme(T, letter);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+// h: page height in layout units (width is always 2400); the 2400x3000 composition is centred vertically.
+// px: optional [width, height] in device pixels; the SVG scales to fill it exactly.
+function themedPage(T, meta, art, h = H, cap = !process.env.NOCAP, px = [W, h]) {
+  const off = (h - H) / 2;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${px[0]}" height="${Math.round(px[1])}" viewBox="0 0 ${W} ${f(h)}" style="display:block">
 <defs>${defs.join('')}
 <filter id="paper" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" seed="4"/><feColorMatrix type="matrix" values="0 0 0 0 0.55  0 0 0 0 0.45  0 0 0 0 0.42  0 0 0 0.09 0"/></filter>
 <filter id="fibres" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.012" numOctaves="4" seed="9"/><feColorMatrix type="matrix" values="0 0 0 0 0.93  0 0 0 0 0.86  0 0 0 0 0.82  0 0 0 0.35 -0.08"/></filter>
@@ -533,16 +535,17 @@ function themedPage(T, meta, letter) {
   <feComposite in="d" in2="grain" operator="in" result="tex"/>
   <feGaussianBlur in="tex" stdDeviation="0.6"/>
 </filter></defs>
-<rect width="${W}" height="${H}" fill="#FDF9F5"/><rect width="${W}" height="${H}" filter="url(#fibres)"/>
-<g transform="translate(1200 1560) scale(1.15) translate(-1200 -1450)"><g filter="url(#wc)">${art}</g></g>
-${process.env.NOCAP ? "" : `<text x="${W / 2}" y="2715" text-anchor="middle" font-family="Corm" font-style="italic" font-size="92" letter-spacing="6" fill="${T.ink}" fill-opacity="0.9">${meta.month}  ·  ${meta.flower}</text>`}
-<rect width="${W}" height="${H}" filter="url(#paper)"/></svg>`;
+<rect width="${W}" height="${f(h)}" fill="#FDF9F5"/><rect width="${W}" height="${f(h)}" filter="url(#fibres)"/>
+<g transform="translate(0 ${f(off)}) translate(1200 1560) scale(1.15) translate(-1200 -1450)"><g filter="url(#wc)">${art}</g></g>
+${!cap ? "" : `<text x="${W / 2}" y="${f(2715 + off)}" text-anchor="middle" font-family="Corm" font-style="italic" font-size="92" letter-spacing="6" fill="${T.ink}" fill-opacity="0.9">${meta.month}  ·  ${meta.flower}</text>`}
+<rect width="${W}" height="${f(h)}" filter="url(#paper)"/></svg>`;
   return `<!doctype html><html><head><meta charset="utf-8"><style>${fontCSS}html,body{margin:0;background:#FDF9F5}</style></head><body>${svg}</body></html>`;
 }
 const fontCSS = `@font-face{font-family:'Corm';src:url('file://${FONTS}/CormorantGaramond-Italic.ttf');font-style:italic;}`;
 
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  if (process.env.EXPORT) return exportAll(browser);
   const pg = await browser.newPage({ viewport: { width: W, height: H } });
   const only = process.argv[2];
   const outs = [];
@@ -552,7 +555,8 @@ const fontCSS = `@font-face{font-family:'Corm';src:url('file://${FONTS}/Cormoran
     if (only && !name.includes(only)) continue;
     seed = 1000 + key.length * 77 + (gender === 'boy' ? 5 : 0); defs = []; gid = 0;
     const html = path.join(OUT, name + '.html');
-    fs.writeFileSync(html, themedPage(makeTheme(key, gender), THEMES[key], letter));
+    const T = makeTheme(key, gender);
+    fs.writeFileSync(html, themedPage(T, THEMES[key], composeTheme(T, letter)));
     await pg.goto('file://' + html); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(300);
     await pg.screenshot({ path: path.join(OUT, name + '.png') }); outs.push(name); console.log('wrote', name);
   }
@@ -564,3 +568,52 @@ const fontCSS = `@font-face{font-family:'Corm';src:url('file://${FONTS}/Cormoran
   await sp.goto('file://' + sheet); await sp.waitForTimeout(500); await sp.screenshot({ path: path.join(OUT, 'sheet.png'), fullPage: true });
   await browser.close();
 })();
+
+// ---------- print export: every size, JPEG tagged 300 dpi ----------
+// EXPORT=1 node generate.js sep-aster-girl [LETTERS]  ->  out/export/<theme>/<size>[-no-caption]/<L>.jpg
+const SIZES = { '5x7': [1500, 2100], '8x10': [2400, 3000], '11x14': [3300, 4200], 'A4': [2480, 3508], 'A3': [3508, 4961] };
+const NOCAP_SIZES = ['5x7']; // banner cards: print the name's letters without the month caption
+// JPEG quality per size, tuned so each size's full A-Z set stays under Etsy's 20 MB per-file limit
+const QUALITY = { '5x7': 92, '8x10': 92, 'A4': 90, '11x14': 86, 'A3': 84 };
+function setDpi(buf, dpi = 300) { // JFIF APP0: units byte 13, densities 14-17
+  if (buf[2] === 0xFF && buf[3] === 0xE0 && buf.toString('ascii', 6, 10) === 'JFIF') {
+    buf[13] = 1; buf.writeUInt16BE(dpi, 14); buf.writeUInt16BE(dpi, 16);
+  } else throw new Error('no JFIF header to tag with dpi');
+  return buf;
+}
+const jpegSize = buf => { // read SOF0/SOF2 frame dimensions
+  for (let i = 2; i < buf.length;) {
+    const m = buf[i + 1], len = buf.readUInt16BE(i + 2);
+    if (m === 0xC0 || m === 0xC2) return [buf.readUInt16BE(i + 7), buf.readUInt16BE(i + 5)];
+    i += 2 + len;
+  }
+};
+async function exportAll(browser) {
+  const only = process.argv[2] || '', letters = (process.argv[3] || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ').split('');
+  const pages = {};
+  for (const [size, [pw, ph]] of Object.entries(SIZES)) {
+    const ctx = await browser.newContext({ viewport: { width: pw, height: ph } });
+    pages[size] = { pg: await ctx.newPage(), h: ph * W / pw, pw, ph };
+  }
+  for (const key of Object.keys(THEMES)) for (const gender of ['girl', 'boy']) {
+    const theme = `${key}-${gender}`;
+    if (!theme.includes(only)) continue;
+    for (const letter of letters) {
+      seed = 1000 + key.length * 77 + (gender === 'boy' ? 5 : 0); defs = []; gid = 0;
+      const T = makeTheme(key, gender), art = composeTheme(T, letter);
+      for (const [size, P] of Object.entries(pages)) for (const cap of NOCAP_SIZES.includes(size) ? [true, false] : [true]) {
+        const dir = path.join(OUT, 'export', theme, size + (cap ? '' : '-no-caption'));
+        fs.mkdirSync(dir, { recursive: true });
+        const html = path.join(OUT, 'export', '_page.html');
+        fs.writeFileSync(html, themedPage(T, THEMES[key], art, P.h, cap, [P.pw, P.ph]));
+        await P.pg.goto('file://' + html); await P.pg.evaluate(() => document.fonts.ready); await P.pg.waitForTimeout(150);
+        const buf = setDpi(await P.pg.screenshot({ type: 'jpeg', quality: QUALITY[size], clip: { x: 0, y: 0, width: P.pw, height: P.ph } }));
+        const [w, hh] = jpegSize(buf);
+        if (w !== P.pw || hh !== P.ph) throw new Error(`${theme} ${size} ${letter}: got ${w}x${hh}, want ${P.pw}x${P.ph}`);
+        fs.writeFileSync(path.join(dir, `${letter}.jpg`), buf);
+      }
+      console.log('exported', theme, letter);
+    }
+  }
+  await browser.close();
+}

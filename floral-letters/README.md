@@ -10,7 +10,7 @@ or month is a render, not a repaint.
 
 | Theme | Letters | Notes |
 |---|---|---|
-| September · Aster (girl / boy) | A–Z done | first product to list |
+| September · Aster (girl / boy) | A–Z done, all sizes exported and packaged | first product to list |
 | July · Larkspur (girl / boy) | A–Z geometry works, not reviewed letter by letter | |
 | Other 10 months | not started | one new flower drawing each |
 
@@ -25,6 +25,23 @@ NOCAP=1 node generate.js sep-aster-girl MAI                   # no "September ·
 node mockups.js                                               # listing images (needs M, A, I, S rendered above)
 ```
 
+Etsy download (all sizes, then five zips under 20 MB each, each with a printing-guide PDF):
+
+```sh
+EXPORT=1 node generate.js sep-aster-girl    # out/export/sep-aster-girl/<size>/<L>.jpg, ~5 min
+node package.js sep-aster-girl              # out/etsy/sep-aster-girl/*.zip
+```
+
+| Zip | Contents | Pixels (300 dpi) | Size |
+|---|---|---|---|
+| 1 | 5×7 + 5×7 without caption (banner) | 1500×2100 | ~13 MB |
+| 2 | 8×10 | 2400×3000 | ~14 MB |
+| 3 | 11×14 | 3300×4200 | ~13 MB |
+| 4 | A4 | 2480×3508 | ~14 MB |
+| 5 | A3 | 3508×4961 | ~14 MB |
+
+JPEG quality is set per size (`QUALITY` in `generate.js`) to stay under the limit; `package.js` fails if a zip goes over 20 MB.
+
 Themes: `jul-larkspur-girl`, `jul-larkspur-boy`, `sep-aster-girl`, `sep-aster-boy`.
 Output is 2400×3000 px (8×10 in at 300 dpi) and is deterministic: the same command gives the same file.
 
@@ -37,8 +54,7 @@ Output is 2400×3000 px (8×10 in at 300 dpi) and is deterministic: the same com
 
 ## Still to do before listing
 
-- Export 5×7, 11×14, A4 and A3 versions (so far only 8×10).
-- Package the download so it fits Etsy's 5 files × 20 MB limit, probably 5×7 in the listing plus a PDF link to the full set.
 - Replace the code-drawn wall mockup with real photo mockups.
+- Title, tags, description, price.
 
 Fonts: Cormorant Garamond and Great Vibes, both SIL Open Font License.
