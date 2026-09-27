@@ -13,9 +13,16 @@ const SRC = path.join(EXP, theme), DEST = path.join(DIR, 'out', 'etsy', theme, '
 const W = 3000, H = 2250;
 const boy = theme.endsWith('-boy');
 const other = boy ? theme.replace(/-boy$/, '-girl') : theme.replace(/-girl$/, '-boy');
-const C = boy
-  ? { ink: '#4F6887', soft: '#8499B2', bg: '#EFEDEA', glow: 'rgba(250,251,253,.9)', name: 'NOAH', otherLabel: 'Also in pink & lilac' }
-  : { ink: '#7E5A69', soft: '#A88D98', bg: '#F2EBE5', glow: 'rgba(255,250,246,.9)', name: 'MAIA', otherLabel: 'Also in dusty blue' };
+const PINK = { ink: '#7E5A69', soft: '#A88D98', bg: '#F2EBE5', glow: 'rgba(255,250,246,.9)', name: 'MAIA' };
+const THEME_META = {
+  'sep-aster-girl': { ...PINK, month: 'September', flower: 'aster', otherLabel: 'Also in dusty blue' },
+  'sep-aster-boy': { ink: '#4F6887', soft: '#8499B2', bg: '#EFEDEA', glow: 'rgba(250,251,253,.9)', name: 'NOAH', month: 'September', flower: 'aster', otherLabel: 'Also in pink & lilac' },
+  'nov-chrysanthemum-girl': { ...PINK, month: 'November', flower: 'chrysanthemum', otherLabel: 'Also in rust & cream' },
+  'nov-chrysanthemum-boy': { ink: '#7F5238', soft: '#B08A70', bg: '#F1EBE4', glow: 'rgba(255,249,242,.9)', name: 'NOAH', month: 'November', flower: 'chrysanthemum', otherLabel: 'Also in dusty pink' },
+};
+const C = THEME_META[theme];
+if (!C) throw new Error(`no listing-image settings for ${theme}: add it to THEME_META`);
+const Flower = C.flower[0].toUpperCase() + C.flower.slice(1);
 const src = (size, l, t = theme) => `file://${path.join(EXP, t, size, l + '.jpg')}`;
 
 const base = `
@@ -46,13 +53,13 @@ pages['01-hero-banner'] = (() => {
       <div style="position:absolute;left:${x + cw / 2 - 24}px;top:${y - 50}px;width:48px;height:104px;border-radius:7px;transform:rotate(${rot}deg);background:linear-gradient(90deg,#D7B98F,#C4A176);box-shadow:0 5px 10px rgba(60,40,30,.25)"></div>`;
   });
   return s + `<div class="h" style="top:1560px">Spell the name. Frame the letter.</div>
-    <div class="s" style="top:1850px">September &middot; Aster</div>`;
+    <div class="s" style="top:1850px">${C.month} &middot; ${Flower}</div>`;
 })();
 
 // 2. the print itself, straight on
 pages['02-the-print'] = `${full(src('8x10', 'M'), 1360, 1700, 330, 275)}
   <div style="position:absolute;left:1930px;top:0;bottom:0;width:900px;display:flex;flex-direction:column;justify-content:center;font-size:190px;line-height:1.02">
-    <div>September&rsquo;s</div><div>birth flower:</div><div style="margin-top:60px;font-size:230px">the aster</div></div>`;
+    <div>${C.month}&rsquo;s</div><div>birth flower:</div><div style="margin-top:60px;font-size:${C.flower.length > 8 ? 170 : 230}px">the ${C.flower}</div></div>`;
 
 // 3. every letter
 pages['03-a-to-z'] = (() => {

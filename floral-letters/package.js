@@ -12,9 +12,12 @@ const SRC = path.join(DIR, 'out', 'export', theme), DEST = path.join(DIR, 'out',
 const META = {
   'sep-aster-girl': { title: 'September Aster', colour: 'Pink & Lilac', ink: '#8E6A78', soft: '#B4939F' },
   'sep-aster-boy': { title: 'September Aster', colour: 'Dusty Blue', ink: '#5F7A99', soft: '#8FA3BA' },
+  'nov-chrysanthemum-girl': { title: 'November Chrysanthemum', colour: 'Dusty Pink', ink: '#8E6A78', soft: '#B4939F' },
+  'nov-chrysanthemum-boy': { title: 'November Chrysanthemum', colour: 'Rust & Cream', ink: '#7F5238', soft: '#B08A70' },
   'jul-larkspur-girl': { title: 'July Larkspur', colour: 'Pink & Lilac', ink: '#8E6A78', soft: '#B4939F' },
   'jul-larkspur-boy': { title: 'July Larkspur', colour: 'Blue', ink: '#50679A', soft: '#8FA3BA' },
 }[theme];
+if (!META) throw new Error(`no package settings for ${theme}: add it to META`);
 const slug = `${META.title}-${META.colour}`.replace(/[^A-Za-z]+/g, '-');
 // Etsy allows 5 files of up to 20 MB each: one zip per size
 const ZIPS = [

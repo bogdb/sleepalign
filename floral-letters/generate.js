@@ -262,9 +262,45 @@ function fern(L, ang, c = LEAF[0]) { // feathery larkspur foliage
   return s + '</g>';
 }
 
+
+// November: chrysanthemum — dense cupped pompom, petals curl inward, no visible centre
+function chrysanthemum(r, c) {
+  let s = '';
+  const layers = [[22, 1.0], [20, 0.84], [17, 0.68], [14, 0.52], [10, 0.37], [7, 0.23]];
+  layers.forEach(([n, Lf], k) => {
+    const off = R(0, 360), t = k / (layers.length - 1);
+    // outer petals lighter at the tip, inner petals deeper: gives the cupped depth
+    const g = grad(c, 0.5, 1, 0.5, 0, [[0, c[2], 0.9], [0.5, t > 0.5 ? c[2] : c[1], 0.8], [1, t > 0.6 ? c[1] : c[0], 0.75]]);
+    for (let i = 0; i < n; i++) {
+      const L = r * Lf * R(0.86, 1.04);
+      s += `<path d="${petal(L, L * R(0.2, 0.26), 0.55)}" transform="rotate(${f(off + i * 360 / n + R(-5, 5))})" fill="${g}" stroke="${c[2]}" stroke-opacity="0.35" stroke-width="${f(r * 0.012 + 0.6)}"/>`;
+    }
+  });
+  s += `<circle r="${f(r * 0.1)}" fill="${c[2]}" fill-opacity="0.55"/>`;
+  return s;
+}
+function chrysBud(r, c, ang) {
+  let s = `<g transform="rotate(${f(ang)})"><path d="M0 ${f(r * 2.4)} Q${f(r * 0.3)} ${f(r)} 0 ${f(r * 0.3)}" stroke="${LEAF[0][2]}" stroke-width="2.4" fill="none"/>`;
+  s += `<circle r="${f(r * 0.7)}" fill="${grad(c)}" stroke="${c[2]}" stroke-opacity="0.45" stroke-width="1.2"/>`;
+  for (const a of [-50, 0, 50]) s += `<path d="${petal(r * 0.75, r * 0.3, 0.3)}" transform="translate(0 ${f(r * 0.55)}) rotate(${180 + a})" fill="${LEAF[0][1]}" fill-opacity="0.85"/>`;
+  return s + '</g>';
+}
+function lobedLeaf(L, ang, c = pick(LEAF)) { // chrysanthemum leaf: three rounded lobes each side
+  const g = grad(c, 0.5, 1, 0.5, 0, [[0, c[2], 0.85], [0.5, c[1], 0.75], [1, c[0], 0.65]]);
+  const w = L * 0.36;
+  let d = 'M0 0';
+  for (const [t, ww] of [[0.28, 0.75], [0.58, 1], [0.86, 0.6]]) d += ` Q${f(-w * ww * 1.3)} ${f(-L * (t - 0.12))} ${f(-w * ww * 0.35)} ${f(-L * t)}`;
+  d += ` Q${f(-w * 0.2)} ${f(-L * 1.02)} 0 ${f(-L)}`;
+  for (const [t, ww] of [[0.86, 0.6], [0.58, 1], [0.28, 0.75]]) d += ` Q${f(w * ww * 0.35)} ${f(-L * t - L * 0.02)} ${f(w * ww * 0.35)} ${f(-L * t)} Q${f(w * ww * 1.3)} ${f(-L * (t - 0.12))} ${f(t === 0.28 ? 0 : w * 0.3)} ${f(-L * Math.max(0, t - 0.2))}`;
+  d += ' Z';
+  return `<g transform="rotate(${f(ang)})"><path d="${d}" fill="${g}" stroke="${c[2]}" stroke-opacity="0.35" stroke-width="1.6"/>`
+    + `<path d="M0 0 L0 ${f(-L * 0.9)}" stroke="${c[2]}" stroke-opacity="0.5" stroke-width="${f(L * 0.012 + 0.8)}"/></g>`;
+}
+
 const THEMES = {
   'jul-larkspur': { month: 'July', flower: 'Larkspur' },
   'sep-aster': { month: 'September', flower: 'Aster' },
+  'nov-chrysanthemum': { month: 'November', flower: 'Chrysanthemum' },
 };
 function makeTheme(key, gender) {
   const boy = gender === 'boy';
@@ -279,6 +315,22 @@ function makeTheme(key, gender) {
       leaf: (x, y, a) => rnd() < (boy ? 0.6 : 0.75) ? put('leaf', x, y, leaf(R(110, 160), a, pick(LEAF), R(0.14, 0.2))) : put('leaf', x, y, eucalyptus(R(150, 200), a)),
       filler: (x, y) => { for (let i = 0; i < 3; i++) put('filler', x + R(-45, 45), y + R(-45, 45), aster(R(22, 32), pick(pals)), R(0, 360)); },
       airy: (x, y, a) => put('filler', x, y, breath(R(110, 140), a, boy ? PB.ivory : P.cream)),
+    };
+  }
+  if (key === 'nov-chrysanthemum') {
+    // "boy" here is the neutral colourway: rust, mustard and cream
+    const rust = ['#F7E1D0', '#DDA27E', '#A45E3C'], mustard = ['#FAEBC6', '#E4C274', '#A8832F'];
+    const dusty = ['#FBE4E5', '#ECB1B8', '#C27381'], mauve = ['#F1DDE7', '#CEA2BC', '#8E5F7C'];
+    const pals = boy ? [rust, PB.ivory, mustard, rust, PB.ivory] : [dusty, P.blush, mauve, dusty, PB.ivory];
+    return {
+      ink: boy ? '#8A5A3E' : '#A8708A',
+      bloom: (x, y) => put('flower', x, y, chrysanthemum(R(78, 106), pick(pals)), R(0, 360)),
+      focal: (x, y, r) => put('top', x, y, chrysanthemum(r, pick(pals)), R(0, 360)),
+      small: (x, y) => put('flower', x, y, chrysanthemum(R(34, 44), pick(pals)), R(0, 360)),
+      bud: (x, y, a) => put('filler', x, y, chrysBud(R(20, 28), pick(pals), a)),
+      leaf: (x, y, a) => rnd() < 0.7 ? put('leaf', x, y, lobedLeaf(R(110, 150), a)) : put('leaf', x, y, eucalyptus(R(150, 200), a)),
+      filler: (x, y) => { for (let i = 0; i < 2; i++) put('filler', x + R(-40, 40), y + R(-40, 40), chrysBud(R(18, 24), pick(pals), R(0, 360))); },
+      airy: (x, y, a) => put('filler', x, y, breath(R(110, 140), a, PB.ivory)),
     };
   }
   // larkspur
